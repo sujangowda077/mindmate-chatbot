@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindMate - AI Mental Health Chatbot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #7f00ff;
+      --secondary: #e100ff;
+      --text-light: #1c1c1c;
+      --text-dark: #f0f0f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+
+    body {
+      overflow-x: hidden;
+      color: var(--text-light);
+      min-height: 100vh;
+      background: #f3f3f3;
+    }
+
+    body.dark-mode {
+      color: var(--text-dark);
+      background: #121212;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      background: linear-gradient(-45deg, #7f00ff, #e100ff, #00c9ff, #92fe9d);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      filter: blur(5px);
+    }
+
+    @keyframes gradientShift {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .top-bar h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+    }
+
+    .theme-toggle {
+      background: white;
+      color: var(--primary);
+      border: none;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.05);
+    }
+
+    #chatbox {
+      width: 90%;
+      max-width: 800px;
+      height: 460px;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 20px;
+      background-color: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(14px);
+      overflow-y: auto;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+
+    .message {
+      margin: 12px 0;
+      padding: 12px 18px;
+      border-radius: 18px;
+      max-width: 80%;
+      line-height: 1.6;
+      word-wrap: break-word;
+    }
+
+    .user {
+      background: #a1c4fd;
+      margin-left: auto;
+    }
+
+    .bot {
+      background: #d4fc79;
+      margin-right: auto;
+    }
+
+    body.dark-mode .user {
+      background: #333;
+      color: #fff;
+    }
+
+    body.dark-mode .bot {
+      background: #226d4c;
+      color: #fff;
+    }
+
+    .input-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin: 20px auto 40px;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 14px 18px;
+      border-radius: 30px;
+      border: none;
+      font-size: 16px;
+      outline: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .send-btn {
+      padding: 14px 22px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(127, 0, 255, 0.4);
+    }
+
+    .send-btn:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    @media (max-width: 600px) {
+      .top-bar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 20px;
+      }
+
+      .input-area {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #userInput, .send-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <h1>🌈 MindMate</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+  </div>
+
+  <div id="chatbox"></div>
+
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Tell me how you feel..." />
+    <button class="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const message = input.value.trim();
+      if (!message) return;
+
+      appendMessage("You", message, "user");
+      input.value = "";
+
+      try {
+        const res = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: message })
+        });
+
+        const data = await res.json();
+        appendMessage("MindMate", data.response, "bot");
+
+      } catch (error) {
+        appendMessage("MindMate", "⚠️ Unable to connect to the server.", "bot");
+      }
+    }
+
+    function appendMessage(sender, text, className) {
+      const chatbox = document.getElementById("chatbox");
+      const msg = document.createElement("div");
+      msg.classList.add("message", className);
+
+      // Convert Gemini Markdown-style text to HTML
+      const formatted = text
+        .replace(/(?:\r\n|\r|\n)/g, "<br>")
+        .replace(/## (.*?)(<br>|$)/g, "<h3>$1</h3>")
+        .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+        .replace(/\*(.*?)\*/g, "<i>$1</i>");
+
+      msg.innerHTML = `<strong>${sender}:</strong><br>${formatted}`;
+      chatbox.appendChild(msg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const btn = document.querySelector(".theme-toggle");
+      body.classList.toggle("dark-mode");
+      btn.textContent = body.classList.contains("dark-mode") ? "☀️ Light Mode" : "🌙 Dark Mode";
+    }
+  </script>
+</body>
+</html>
