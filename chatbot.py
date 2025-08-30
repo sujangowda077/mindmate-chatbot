@@ -3,7 +3,7 @@ from deep_translator import GoogleTranslator
 import traceback
 
 # 🔑 Your Gemini API key
-genai.configure(api_key="AIzaSyDUmg79PZtaEui4kbBxw2STWQVY-C4RzO8")  # Replace with your actual key
+genai.configure(api_key="AIzaSyC2TBSgxG2ZxArEm6vgpn1U2dTK9JGSguc")  # Replace with your actual key
 model = genai.GenerativeModel("models/gemini-1.5-flash-latest")
 
 def get_response(message):
