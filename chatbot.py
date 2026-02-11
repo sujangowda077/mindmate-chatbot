@@ -1,9 +1,11 @@
 import google.generativeai as genai
 from deep_translator import GoogleTranslator
 import traceback
+import os
+genai.configure(api_key=os.getenv("AIzaSyBKLUn4k7TbRb7afwZaMayftZ1KH-Xqq-U"))
 
-# 🔑 Your Gemini API key
-genai.configure(api_key="AIzaSyBKLUn4k7TbRb7afwZaMayftZ1KH-Xqq-U")  # Replace with your actual key
+
+# 🔑 Your Gemini API key  # Replace with your actual key
 model = genai.GenerativeModel("models/gemini-1.5-flash-latest")
 
 def get_response(message):
